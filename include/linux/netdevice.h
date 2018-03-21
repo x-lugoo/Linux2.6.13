@@ -263,15 +263,24 @@ struct net_device
 	 * (i.e. as seen by users in the "Space.c" file).  It is the name
 	 * the interface.
 	 */
+	 /*e.g.,eth0*/
 	char			name[IFNAMSIZ];
 
 	/*
 	 *	I/O specific fields
 	 *	FIXME: Merge these and struct ifmap into one
 	 */
+	 /*these field describe the shared memory used by the device to communicate with the kernel
+	    *the higher layer do not need to care about them
+	   */
+		
 	unsigned long		mem_end;	/* shared mem end	*/
 	unsigned long		mem_start;	/* shared mem start	*/
 	unsigned long		base_addr;	/* device I/O address	*/
+
+	/*The interrupt number useb by the device to talk to the kernel ,It can be shared among 
+	  * multiple devices,drivers use the request_irq() to allocate the variable and free_irq to release it
+	  */
 	unsigned int		irq;		/* device IRQ number	*/
 
 	/*
@@ -293,8 +302,11 @@ struct net_device
 
 	struct net_device	*next_sched;
 
-	/* Interface index. Unique device identifier	*/
+	/* Interface index. Unique device identifier	,can be search by  hash table */
 	int			ifindex;
+	/*mainly used by (virtual) tunnel devices and identified the real device that will be used to reach the other end 
+	 *	 of the runnel 
+	 */
 	int			iflink;
 
 
@@ -318,8 +330,9 @@ struct net_device
 	/* These may be needed for future network-power-down code. */
 	unsigned long		trans_start;	/* Time (in jiffies) of last Tx	*/
 	unsigned long		last_rx;	/* Time of last Rx	*/
-
+	/*you can type "ifconfig lo" can see IFF_UP ,IFF_LOOPBACK,IFF_RUNNING*/
 	unsigned short		flags;	/* interface flags (a la BSD)	*/
+	/*almostly never used and is there for compatibility reasons*/
 	unsigned short		gflags;
         unsigned short          priv_flags; /* Like 'flags' but invisible to userspace. */
 	unsigned short		padded;	/* How much padding added by alloc_netdev() */
@@ -395,6 +408,9 @@ struct net_device
 	} reg_state;
 
 	/* Net device features */
+	/*report the card's capibilities for communicating with the cpu,such as whether the can can do DMA to high memory
+	*or checksum all the packet in hardware(TOS)common be initialized by the device driver e.g.,NETIF_F_XXX
+	*/
 	unsigned long		features;
 #define NETIF_F_SG		1	/* Scatter/gather IO. */
 #define NETIF_F_IP_CSUM		2	/* Can checksum only TCP/UDP over IPv4. */

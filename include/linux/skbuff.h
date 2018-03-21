@@ -133,8 +133,12 @@ struct skb_frag_struct {
  * the end of the header data, ie. at skb->end.
  */
 struct skb_shared_info {
+	/*dataref represents the number of "users" of the data block */
 	atomic_t	dataref;
+
+	/*nr_flags and flag_list used to handle ip fragments*/
 	unsigned int	nr_frags;
+	/*tso_size and tso_segs are used to indicate tso (tcp segmentation offload */
 	unsigned short	tso_size;
 	unsigned short	tso_segs;
 	struct sk_buff	*frag_list;
@@ -242,6 +246,7 @@ struct sk_buff {
 	 * want to keep them across layers you have to do a skb_clone()
 	 * first. This is owned by whoever has the skb queued ATM.
 	 */
+ /*for instance tcp_v4_rcv fill in the  member and tcp_transmit_skb will retrieve data from this member*/
 	char			cb[40];
 
 	unsigned int		len,
@@ -250,10 +255,15 @@ struct sk_buff {
 				csum;
 	__u32			priority;
 	__u8			local_df:1,
+		/*indicates that this structure is a clone of another su_buff buffer*/
 				cloned:1,
+		/*checksum and associates status flag*/
 				ip_summed:2,
 				nohdr:1;
 				/* 3 bits spare */
+				/*classifies the type of frame based on its L2(Mac layout) destination address,for Ethernet device,this parameter is initialized by
+				* function eth_type_trans
+				*/
 	__u8			pkt_type;
 	__be16			protocol;
 
@@ -288,7 +298,7 @@ struct sk_buff {
 	unsigned char		*head,
 				*data,
 				*tail,
-				*end;
+				*end;/*(struct skb_shared_info*)(skb->end)*/
 };
 
 #ifdef __KERNEL__
